@@ -8,7 +8,7 @@ public static class Helper {
     public static string[] bools = {"f", "t", "true", "false", "True", "False", "TRUE", "FALSE", "T", "F"};
     public static string nums = "-1234567890";
     public static string fltNums = "-1234567890.";
-    public static bool boolify(string str, uint ln) {
+    public static bool boolify(string str) {
         // string[] realbools = {"}
         str = str.ToLower();
         switch(str) {
@@ -155,17 +155,20 @@ public class Parser {
                 case '%': return "arr.byte";
             }
         }
+        return "arr.ERR";
     }
     public void parse(string fn) {
         string[] lines = File.ReadAllLines(fn);
         for (uint i = 0; i < lines.Length; i++) {
+            int __i = Convert.ToInt32(i);
             uint lineNum = i+1;
             int intline = (int)i+1;
-            string line = lines[intline];
+            string line = lines[__i];
             if (line.Trim() == ">") inArr = false;
             if (line[0] == '|' || string.IsNullOrWhiteSpace(line)) continue; // ignores comments and empty lines
             if (line.Trim()[0] == '>' && line.IndexOf(">") != line.Length-1) {
-                WriteLine("Error")
+                WriteLine($"arr.terminator.poluted [{lineNum}]: Polluted array terminator (the end of an array should be JUST '>', NOTHING else)");
+                return;
             }
             string[] _parts = line.Split(' ', 2);
             if (_parts.Length < 2) {
@@ -206,31 +209,30 @@ public class Parser {
                     }
                     if (arrLine[0] == '|' || string.IsNullOrWhiteSpace(arrLine)) continue;
 
-                    if (line[0] == '|' || string.IsNullOrWhiteSpace(line)) continue;
+                    if (arrLine[0] == '|' || string.IsNullOrWhiteSpace(arrLine)) continue;
                 
-                    if (data[name].Type == "arr.int" && !IsIt.Int(line, lineNum) || (data[name].Type == "arr.flt" && !IsIt.flt(line, lineNum))) {
-                        WriteLine($"arr.item.mismatch [{lineNum}]: {line} is not does not match {data[name].Name}'s type, thus cannot be appended .");
+                    if (data[name].Type == "arr.int" && !IsIt.Int(arrLine, arrLineNum) || (data[name].Type == "arr.flt" && !IsIt.flt(arrLine, arrLineNum))) {
+                        WriteLine($"arr.item.mismatch [{arrLineNum}]: {arrLine} is not does not match {data[name].Name}'s type, thus cannot be appended .");
                         return;
                     }
 
-                    else if (data[name].Type == "arr.bool" && !(Helper.bools.Contains(line))) {
-                        WriteLine($"arr.item.mismatch [{lineNum}]: {line} is not does not match {data[name].Name}'s type, thus cannot be appended .");
+                    else if (data[name].Type == "arr.bool" && !(Helper.bools.Contains(arrLine))) {
+                        WriteLine($"arr.item.mismatch [{arrLineNum}]: {arrLine} is not does not match {data[name].Name}'s type, thus cannot be appended .");
                         return;
                     }
                 
-                    else if (data[name].Type == "arr.uint" &&  !IsIt.positive(line, lineNum)) {
-                        WriteLine($"arr.item.mismatch [{lineNum}]: {line} is not does not match {data[name].Name}'s type, thus cannot be appended .");
+                    else if (data[name].Type == "arr.uint" &&  !IsIt.positive(arrLine, arrLineNum)) {
+                        WriteLine($"arr.item.mismatch [{arrLineNum}]: {arrLine} is not does not match {data[name].Name}'s type, thus cannot be appended .");
                         return;
                     }
                     switch(data[name].Type) {
-                        case "arr.uint": if (IsIt.positive(line, lineNum)) data[name].Array.Add(Convert.ToUInt32(line)); break;
-                        case "arr.int": if (IsIt.Int(line, lineNum))       data[name].Array.Add(Convert.ToInt32(line)); break;
-                        case "arr.str":                                    data[name].Array.Add(line); break;
-                        case "arr.bool": if (Helper.bools.Contains(line))  data[name].Array.Add(Helper.boolify(line)); break;
-                        case "arr.flt": if (IsIt.flt(line, lineNum))       data[name].Array.Add(line); break;
-                        case "arr.byte": if (IsIt.u8(line, lineNum))       data[name].Array.Add(line); break;
+                        case "arr.uint": if (IsIt.positive(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToUInt32(line)); break;
+                        case "arr.int": if (IsIt.Int(arrLine, arrLineNum))       data[name].Array.Add(Convert.ToInt32(line)); break;
+                        case "arr.str":                                          data[name].Array.Add(line); break;
+                        case "arr.bool": if (Helper.bools.Contains(arrLine))     data[name].Array.Add(Helper.boolify(line)); break;
+                        case "arr.flt": if (IsIt.flt(arrLine, arrLineNum))       data[name].Array.Add(line); break;
+                        case "arr.byte": if (IsIt.u8(arrLine, arrLineNum))       data[name].Array.Add(line); break;
                     }
-                    lineNum++;
                 }
             }
         }
