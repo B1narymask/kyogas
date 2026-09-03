@@ -12,9 +12,9 @@ namespace Kiogas {
         public static bool boolify(string str) {
             str = str.ToLower();
             switch(str) {
-                case "f": return false;
-                case "t": return true;
-                case "true": return true;
+                case "f":     return false;
+                case "t":     return true;
+                case "true":  return true;
                 case "false": return false;
             }
             return true;
@@ -157,6 +157,7 @@ namespace Kiogas {
             return "arr.ERR";
         }
         public void parse(string fn) {
+            // you might want to wrap this in a try catch
             string[] lines = File.ReadAllLines(fn);
             for (uint i = 0; i < lines.Length; i++) {
                 int __i = Convert.ToInt32(i);
@@ -228,12 +229,34 @@ namespace Kiogas {
 
                         // if (data[name].Type == "arr.str" && arrLine[0] == '<') data[name].Array.Add(arrLine);
                         switch(data[name].Type) {
-                            case "arr.uint": if (IsIt.positive(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToUInt32(arrLine)); break;
-                            case "arr.int": if (IsIt.Int(arrLine, arrLineNum))       data[name].Array.Add(Convert.ToInt32(arrLine)); break;
-                            case "arr.str":                                          data[name].Array.Add(arrLine); break;
-                            case "arr.bool": if (Helper.bools.Contains(arrLine))     data[name].Array.Add(Helper.boolify(arrLine)); break;
-                            case "arr.flt": if (IsIt.flt(arrLine, arrLineNum))       data[name].Array.Add(arrLine); break;
-                            case "arr.byte": if (IsIt.u8(arrLine, arrLineNum))       data[name].Array.Add(arrLine); break;
+                            case "arr.uint": 
+                                if (IsIt.positive(arrLine, arrLineNum)) {
+                                    data[name].Array.Add(Convert.ToUInt32(arrLine)); 
+                                }
+                                break;
+                            case "arr.int": 
+                                if (IsIt.Int(arrLine, arrLineNum)) {
+                                    data[name].Array.Add(Convert.ToInt32(arrLine));
+                                }
+                                break; 
+                            case "arr.str": 
+                                data[name].Array.Add(arrLine); 
+                                break;
+                            case "arr.bool": 
+                                if (Helper.bools.Contains(arrLine)) {
+                                    data[name].Array.Add(Helper.boolify(arrLine)); 
+                                }
+                                break;
+                            case "arr.flt": 
+                                if (IsIt.flt(arrLine, arrLineNum)) {
+                                    data[name].Array.Add(arrLine); 
+                                }
+                                break;
+                            case "arr.byte": 
+                                if (IsIt.u8(arrLine, arrLineNum)) {
+                                    data[name].Array.Add(arrLine); 
+                                }
+                                break;
                         }
                     }
                 }
