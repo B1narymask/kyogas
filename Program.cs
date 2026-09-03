@@ -7,7 +7,14 @@ class Program {
             WriteLine("parser.huh: uh... what am i supposed to parse? please provide a .kyo file as an argument.");
             return;
         }
+        
         Parser parser =  new Parser();
-        parser.parse(argv[1]);
+        string file = argv[1];
+        
+        if (File.exists(file)) {
+            parser.parse(file);
+        } else {
+            throw new Exception("The file you passed does not exist in this context.");
+        }
     }
 }
