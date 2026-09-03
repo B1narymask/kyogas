@@ -1,16 +1,23 @@
--langName Kyogas
--dateFormat DD/MM/YYYY
+-name Kyogas
+
+| format:  DD/MM/YYYY
 -creationDate 1/9/2026
 -first-working-release 3/9/2026, 01:09 GMT-3
--current-version 0.1.0.1
-%public-releases 2
+
+-current-version 0.1.0.2
+%public-releases 3
+
 %data-type-count 7
 <-data-types
--str
-#int
-+uint
-%byte
-°flt (float)
-<arr
-!bool
+    -str
+    #int
+    +uint
+    %byte
+    °flt (float)
+    <arr
+    !bool
+>
+<-contributors
+    wernasho
+    centurion
 >
