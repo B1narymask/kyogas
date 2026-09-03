@@ -27,7 +27,7 @@ namespace Kiogas {
             uint matches = 0;
             uint i = 0;
             while (i < str.Length) {
-                if (Helper.nums.Contains(str[i])) matches++;
+                if (Helper.nums.Contains(str[(int)i])) matches++;
                 i++;
             }
             if (str.Length == 1 && str[0] == '-') {
@@ -52,7 +52,7 @@ namespace Kiogas {
             uint matches = 0;
             uint i = 0;
             while (i < str.Length) {
-                if (Helper.fltNums.Contains(str[i])) matches++;
+                if (Helper.fltNums.Contains(str[(int)i])) matches++;
                 i++;
             }
             if (matches != str.Length || str.Count(c => c == '.') > 1 ) {
@@ -171,17 +171,17 @@ namespace Kiogas {
                     return;
                 }
                 string[] _parts = line.Split(' ', 2);
-                if (_parts.Length < 2) {
+                if (_parts.Length < 2 && _parts[0][0] != '<') {
                     WriteLine($"key.value.missing [{lineNum}]: Key {_parts[0]} was not given a value.");
                     return;
                 }
+                else if (_parts.Length == 1 && _parts[0][0] == '<') inArr = true;
                 string name = _parts[0];
                 if (isDuplicate(name)) return;
                 names.Add(name);
-                string val = _parts[1]; 
-
-                    
-                
+                string val = "";
+                if (!inArr) val = _parts[1]; 
+                else { val = "arr"; }
                 string type = parseGlyph(line, lineNum);
                 if (type == "ERR") return;
                 data[name] = new Data {
@@ -200,6 +200,7 @@ namespace Kiogas {
                     i++;  
                     while (inArr && i < lines.Length) {
                         string arrLine = lines[i];
+                        // WriteLine(arrLine);
                         uint arrLineNum = (uint)i + 1;
                         i++;
                         
@@ -226,16 +227,25 @@ namespace Kiogas {
                             return;
                         }
                         switch(data[name].Type) {
-                            case "arr.uint": if (IsIt.positive(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToUInt32(line)); break;
-                            case "arr.int": if (IsIt.Int(arrLine, arrLineNum))       data[name].Array.Add(Convert.ToInt32(line)); break;
-                            case "arr.str":                                          data[name].Array.Add(line); break;
-                            case "arr.bool": if (Helper.bools.Contains(arrLine))     data[name].Array.Add(Helper.boolify(line)); break;
-                            case "arr.flt": if (IsIt.flt(arrLine, arrLineNum))       data[name].Array.Add(line); break;
-                            case "arr.byte": if (IsIt.u8(arrLine, arrLineNum))       data[name].Array.Add(line); break;
+                            case "arr.uint": if (IsIt.positive(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToUInt32(arrLine)); break;
+                            case "arr.int": if (IsIt.Int(arrLine, arrLineNum))       data[name].Array.Add(Convert.ToInt32(arrLine)); break;
+                            case "arr.str":                                          data[name].Array.Add(arrLine); break;
+                            case "arr.bool": if (Helper.bools.Contains(arrLine))     data[name].Array.Add(Helper.boolify(arrLine)); break;
+                            case "arr.flt": if (IsIt.flt(arrLine, arrLineNum))       data[name].Array.Add(arrLine); break;
+                            case "arr.byte": if (IsIt.u8(arrLine, arrLineNum))       data[name].Array.Add(arrLine); break;
                         }
                     }
                 }
             }
+            // !!!!!!! DEBUG
+            /*foreach (var kvp in data) {
+                if (kvp.Value.IsArr) {
+                    WriteLine($"{kvp.Key}: [{kvp.Value.Type}] = {string.Join(", ", kvp.Value.Array)}");
+                } else {
+                    WriteLine($"{kvp.Key}: [{kvp.Value.Type}] = {kvp.Value.Value}");
+                }
+                
+            }*/
         }
     }
 }
