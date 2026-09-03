@@ -1,0 +1,5 @@
+C:\!val\code\kyogas\obj\Debug\net10.0\kyogas.GeneratedMSBuildEditorConfig.editorconfig
+C:\!val\code\kyogas\obj\Debug\net10.0\kyogas.AssemblyInfoInputs.cache
+C:\!val\code\kyogas\obj\Debug\net10.0\kyogas.AssemblyInfo.cs
+C:\!val\code\kyogas\obj\Debug\net10.0\kyogas.csproj.CoreCompileInputs.cache
+C:\!val\code\kyogas\obj\Debug\net10.0\kyogas.sourcelink.json

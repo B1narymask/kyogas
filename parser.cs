@@ -76,7 +76,7 @@ public static class IsIt {
             WriteLine($"uint.underflow [{ln}]: {str} is negative. Unsigned integers cannot be negative.");
             return false;
         }
-        try uint _a =Convert.ToUInt32(str);
+        try {uint _a =Convert.ToUInt32(str);}
         catch (Exception) {
             WriteLine($"uint.underflow [{ln}]: {str} is negative. Unsigned integers cannot be negative.");
             return false;
