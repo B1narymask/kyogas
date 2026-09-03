@@ -10,7 +10,6 @@ namespace Kiogas {
         public static string nums = "-1234567890";
         public static string fltNums = "-1234567890.";
         public static bool boolify(string str) {
-            // string[] realbools = {"}
             str = str.ToLower();
             switch(str) {
                 case "f": return false;
@@ -226,6 +225,8 @@ namespace Kiogas {
                             WriteLine($"arr.item.mismatch [{arrLineNum}]: {arrLine} is not does not match {data[name].Name}'s type, thus cannot be appended .");
                             return;
                         }
+
+                        // if (data[name].Type == "arr.str" && arrLine[0] == '<') data[name].Array.Add(arrLine);
                         switch(data[name].Type) {
                             case "arr.uint": if (IsIt.positive(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToUInt32(arrLine)); break;
                             case "arr.int": if (IsIt.Int(arrLine, arrLineNum))       data[name].Array.Add(Convert.ToInt32(arrLine)); break;
@@ -238,14 +239,14 @@ namespace Kiogas {
                 }
             }
             // !!!!!!! DEBUG
-            /*foreach (var kvp in data) {
+            foreach (var kvp in data) {
                 if (kvp.Value.IsArr) {
                     WriteLine($"{kvp.Key}: [{kvp.Value.Type}] = {string.Join(", ", kvp.Value.Array)}");
                 } else {
                     WriteLine($"{kvp.Key}: [{kvp.Value.Type}] = {kvp.Value.Value}");
                 }
                 
-            }*/
+            }
         }
     }
 }
