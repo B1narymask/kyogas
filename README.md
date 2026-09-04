@@ -1,5 +1,5 @@
 # Kyogas 
-*it's actually kiógas*
+*(it's actually spelled "kiógas")*
 
 Kyogas (.kyo) is a minimalistic markup language with static typing that I made because I didn't have anything better to do. And because JSON is too verbose and I despise YAML using indentation for everything 
 
@@ -36,18 +36,22 @@ Arrays have *2*  type markers instead of just 1 like every other data type: `<` 
 Yeah, dicts... we don't have those. 
 Kyogas doesn't and probably never will support dictionaries (or any kind of depth/nesting for that matter). If you want dictionaries, I don't know, use JSON or find a workaround
 
+## Null
+You can assign the equivalent to `null` to a key with the `empty` keyword:
+`-name: empty` = `string name = null;`
+
 # Example snippet
 A player save file for an RPG
 
 ```
--name player
-%lvl 5
-+gold 358
-+xp 44
-%hp 100
-%max-hp 100
-%defense 4
-%attack 45
+-name: player
+%lvl: 5
++gold: 358
++xp: 44
+%hp: 100
+%max-hp: 100
+%defense: 4
+%attack: 45
 <-inventory
     | as an alternative to dicts, you could just use different files 
     | and reference them in string arrays
