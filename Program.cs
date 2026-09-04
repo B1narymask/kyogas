@@ -1,4 +1,4 @@
-﻿using static System.Console;
+using static System.Console;
 using System;
 using System.IO;
 using Kiogas;
