@@ -10,25 +10,25 @@ namespace Kiogas {
         public static string nums = "-1234567890";
         public static string fltNums = "-1234567890.";
         public static char[] strs = ['\'', '"', ];
-        public static bool boolify(string str, uint l) {
+        public static object boolify(string str) {
             switch(str) {
                 case "f":     return false;
                 case "t":     return true;
                 case "true":  return true;
                 case "false": return false;
-                default: WriteLine($"bool.invalid [{l}]: {str} is not a valid boolean"); return null;
+                default: WriteLine($"bool.invalid: {str} is not a valid boolean"); return null;
             }
-            return true;
+            // return true;
         }
         public static string escapeCheck(string str, uint ln) {
-            for (char c in str) {
+            foreach (char c in str) {
                 int cIndex = str.IndexOf(c);
                 if (c == '\\' ) {
                     switch(str[cIndex+1]){
                         case 'n': str = str.Replace("\\n", "\n"); break;
                         case 't': str = str.Replace("\\t", "\t"); break;
                         case '\\': 
-                        default: WriteLine($"str.escape.unknown [{ln}]: '\\{c}' is not a recognized escape sequence."); return ".:ERR:."
+                        default: WriteLine($"str.escape.unknown [{ln}]: '\\{c}' is not a recognized escape sequence."); return ".:ERR:.";
                     }
                 }
             }
@@ -36,7 +36,7 @@ namespace Kiogas {
         }
         public static string unquote(string str, uint ln) {
             char first = str[0];
-            char last  = str.Length - 1;
+            char last  = str[str.Length - 1];
             if (first == '"' && last == '"' || (first == '\'' && last == first)) {
                 return str[1..^1];
             }
@@ -44,6 +44,8 @@ namespace Kiogas {
                 Console.WriteLine($"str.misquoted [{ln}]: string {str} has a mismatched/missing quote.");
                 return "";
             }
+
+            return str[1..^1];
 
         }
     }
@@ -125,7 +127,7 @@ namespace Kiogas {
         }
         public static bool str(string str, uint ln) {
             char first = str[0];
-            char last  = str.Length - 1;
+            char last  = str[str.Length - 1];
             str = Helper.unquote(str, ln);
             if (str == "") return false;
             else return true;
@@ -198,25 +200,29 @@ namespace Kiogas {
                 uint lineNum = i+1;
                 int intline = (int)i+1;
                 string line = lines[__i];
-                
+                line = line.Trim();
                 if (line.Trim() == ">") inArr = false;
-                
-                if (line[0] == '|' || string.IsNullOrWhiteSpace(line)) continue; // ignores comments and empty lines
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                if (line[0] == '|') continue; // ignores comments and empty lines
                 
                 if (line.Trim()[0] == '>' && line.IndexOf(">") != line.Length-1) {
                     WriteLine($"arr.terminator.polluted [{lineNum}]: Polluted array terminator (the end of an array should be JUST '>', NOTHING else)");
-                    return;
+                    break;
                 }
                 string[] _parts = line.Split(':', 2);
                 _parts[0] = _parts[0].Trim();
                 if (_parts.Length < 2 && _parts[0][0] != '<') {
                     WriteLine($"key.value.missing [{lineNum}]: Key {_parts[0]} was not given a value.");
-                    return;
+                    break;
                 }
                 else if (_parts.Length == 1 && _parts[0][0] == '<') inArr = true;
                 string name = _parts[0];
-                if (isDuplicate(name)) return;
-                _parts[1] = _parts[1].Trim();
+                // ¿¿¿¿¿ debug:
+                // WriteLine(name);
+                // foreach (var x in _parts) WriteLine(x);
+                // ????? debug
+                if (isDuplicate(name)) break;
+                if (_parts.Length >1) _parts[1] = _parts[1].Trim();
                 names.Add(name);
                 string val = "";
                 if (!inArr) {
@@ -230,7 +236,7 @@ namespace Kiogas {
                     val = null;
                 }
                 string type = parseGlyph(line, lineNum);
-                if (type == "ERR") return;
+                if (type == "ERR") break;
                 data[name] = new Data {
                     Name = name,
                     Value = val,
@@ -241,37 +247,38 @@ namespace Kiogas {
                 if (type == "arr") {
                     inArr = true;
                     string _temptype = parseArrType(line, lineNum);
-                    if (_temptype == "arr.ERR") return;
+                    if (_temptype == "arr.ERR") break;
                     data[name].Type = _temptype;
                 
                     i++;  
                     while (inArr && i < lines.Length) {
-                        string arrLine = lines[i];
+                        string arrLine = lines[i].Trim();
                         // WriteLine(arrLine);
                         uint arrLineNum = (uint)i + 1;
-                        i++;
                         
                         if (arrLine.Trim() == ">") {
                             inArr = false;
+                            i++;
                             break;
                         }
+                        i++;
                         if (arrLine[0] == '|' || string.IsNullOrWhiteSpace(arrLine)) continue;
 
                         if (arrLine[0] == '|' || string.IsNullOrWhiteSpace(arrLine)) continue;
                     
                         if (data[name].Type == "arr.int" && !IsIt.Int(arrLine, arrLineNum) || (data[name].Type == "arr.flt" && !IsIt.flt(arrLine, arrLineNum))) {
                             WriteLine($"arr.item.mismatch [{arrLineNum}]: {arrLine} is not does not match {data[name].Name}'s type, thus cannot be appended .");
-                            return;
+                            break;
                         }
 
                         else if (data[name].Type == "arr.bool" && !(Helper.bools.Contains(arrLine))) {
                             WriteLine($"arr.item.mismatch [{arrLineNum}]: {arrLine} is not does not match {data[name].Name}'s type, thus cannot be appended .");
-                            return;
+                            break;
                         }
                     
                         else if (data[name].Type == "arr.uint" &&  !IsIt.positive(arrLine, arrLineNum)) {
                             WriteLine($"arr.item.mismatch [{arrLineNum}]: {arrLine} is not does not match {data[name].Name}'s type, thus cannot be appended .");
-                            return;
+                            break;
                         }
 
                         // if (data[name].Type == "arr.str" && arrLine[0] == '<') data[name].Array.Add(arrLine);
@@ -281,7 +288,7 @@ namespace Kiogas {
                                     data[name].Array.Add(Convert.ToUInt32(arrLine)); 
                                 }
                                 else {
-                                    return;
+                                    break;
                                 }
                                 break;
                             case "arr.int": 
@@ -289,19 +296,19 @@ namespace Kiogas {
                                     data[name].Array.Add(Convert.ToInt32(arrLine));
                                 }
                                 else {
-                                    return;
+                                    break;
                                 }
                                 break; 
                             case "arr.str": 
                                 if (IsIt.str(arrLine, arrLineNum)) data[name].Array.Add(arrLine);
-                                else return;
+                                else break;
                                 break;
                             case "arr.bool": 
                                 if (Helper.bools.Contains(arrLine)) {
                                     data[name].Array.Add(Helper.boolify(arrLine)); 
                                 }
                                 else {
-                                    return;
+                                    break;
                                 }
                                 break;
                             case "arr.flt": 
@@ -309,7 +316,7 @@ namespace Kiogas {
                                     data[name].Array.Add(arrLine); 
                                 }
                                 else {
-                                    return;
+                                    break;
                                 }
                                 break;
                             case "arr.byte": 
@@ -317,7 +324,7 @@ namespace Kiogas {
                                     data[name].Array.Add(arrLine); 
                                 }
                                 else {
-                                    return;
+                                    break;
                                 }
                                 break;
                         }

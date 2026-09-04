@@ -1,4 +1,4 @@
-using static System.Console;
+﻿using static System.Console;
 using System;
 using System.IO;
 using Kiogas;
@@ -10,16 +10,16 @@ class Program {
         }
         
         Parser parser =  new Parser();
-
+        string file = "";
         // Kind of redundant, but the check above may not catch this
         try {
-            string file = argv[1];
+            file = argv[1];
         } catch (IndexOutOfRangeException) {
             WriteLine("parser.huh: uh... what am i supposed to parse? please provide a .kyo file as an argument.");
             return;
         }
             
-        if (File.exists(file)) {
+        if (File.Exists(file)) {
             parser.parse(file);
         } else {
             throw new Exception("external.fileSys: The file you passed does not exist in this context.");
