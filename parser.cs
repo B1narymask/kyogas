@@ -190,7 +190,7 @@ namespace Kiogas {
             }
             return "arr.ERR";
         }
-        public void parse(string fn) {
+        public Dictionary<string, Data> parse(string fn) {
             // you might want to wrap this in a try catch
             string[] lines = File.ReadAllLines(fn);
             for (uint i = 0; i < lines.Length; i++) {
@@ -333,6 +333,7 @@ namespace Kiogas {
                 }
                 
             }
+            return data;
         }
     }
 }
