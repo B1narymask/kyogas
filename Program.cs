@@ -22,7 +22,17 @@ class Program {
         if (File.exists(file)) {
             parser.parse(file);
         } else {
-            throw new Exception("The file you passed does not exist in this context.");
+            throw new Exception("external.fileSys: The file you passed does not exist in this context.");
+        }
+
+        if (!file.Contains(".")) {
+            WriteLine("external.fileSys.extension.missing: No file extension found");
+            return;
+        }
+        else if (!file.EndsWith(".kyo")) {
+            string[] temp = file.Split(".");
+            WriteLine($"external.fileSys.extension.incorrect: Expected .kyo extension, got .{temp[1]}");
+            return;
         }
     }
 }

@@ -1,13 +1,13 @@
 -name Kyogas
 
 | format:  DD/MM/YYYY
--creationDate 1/9/2026
--first-working-release 3/9/2026, 01:09 GMT-3
+-creationDate: 1/9/2026
+-first-working-release: 3/9/2026, 01:09 GMT-3
 
--current-version 0.1.0.2
-%public-releases 3
+-current-version: 0.2.0.2
++public-releases: 4
 
-%data-type-count 7
+%data-type-count: 7
 <-data-types
     -str
     #int
