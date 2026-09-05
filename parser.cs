@@ -49,10 +49,7 @@ namespace Kiogas {
 
         }
         public static string getType(string str, uint ln) {
-            if(!str.Contains(" ")) {
-                WriteLine($"parser.missingSpace [{ln}]: Missing space. How did this even happen?");
-                return "";
-            }
+
             string[] _temp = str.Split(' ', 2);
             string _type = _temp[0];
             if (_type.StartsWith("arr<") && _type.EndsWith(">")) {
@@ -72,11 +69,16 @@ namespace Kiogas {
                 WriteLine($"type.arr.unclosed [{ln}]: Array type delcaration is missing the closing angle bracket ('>')");
                 return "";
             }
-            else if (_type.StartsWith("arr") && !_type.Contains("<") && _type.EndsWith(">")) {
+            else if (_type.StartsWith("arr.") && !_type.Contains("<") && _type.EndsWith(">")) {
                 WriteLine($"type.arr.unopened [{ln}]: Array type delcaration is missing the opening angle bracket ('<')");
                 return "";
             }
-            else if (Helper.types.Contains(_type)) return _type;
+
+            if (Helper.types.Contains(_type)) return _type;
+            /*else if (!str.Contains(" ")) {
+                WriteLine($"parser.missingSpace [{ln}]: Missing space. How did this even happen?");
+                return "";
+            }*/
             else {
                 if (Helper.types.Contains(_type.ToLower())) {
                     WriteLine($"type.similar [{ln}]: There is no such type '{_type}'. Did you mean {_type.ToLower()}?");
@@ -184,6 +186,7 @@ namespace Kiogas {
         private bool inArr = false;
         private Dictionary<string, Data> data = new();
         private List<string> names = new();
+
         private bool isDuplicate(string name) {
             if (names.Contains(name)) {
                 Console.WriteLine($"name.duplicate: There are two or more keys named '{name}'.");
@@ -191,162 +194,111 @@ namespace Kiogas {
             }
             return false;
         }
+
         public Dictionary<string, Data> parse(string fn) {
-            // you might want to wrap this in a try catch
             string[] lines = File.ReadAllLines(fn);
             for (uint i = 0; i < lines.Length; i++) {
                 int __i = Convert.ToInt32(i);
-                uint lineNum = i+1;
-                int intline = (int)i+1;
-                string line = lines[__i];
-                line = line.Trim();
-                if (line.Trim() == "->") inArr = false;
-                if (string.IsNullOrWhiteSpace(line)) continue;
-                if (line[0] == '|') continue; // ignores comments and empty lines
-                
-                if (line.Trim()[0] == '-') {
-                    if (line.Trim()[1] == '>' && line.IndexOf(">") != line.Length-1) {
-                        WriteLine($"arr.terminator.polluted [{lineNum}]: Polluted array terminator (the end of an array should be JUST '->', NOTHING else)");
+                uint lineNum = i + 1;
+                string line = lines[__i].Trim();
+
+                if (string.IsNullOrWhiteSpace(line) || line[0] == '|') continue;
+
+                if (line.StartsWith("->")) {
+                    inArr = false;
+                    if (line != "->") {
+                        WriteLine($"arr.terminator.polluted [{lineNum}]: Polluted array terminator (the end of an array should be JUST '->', NOTHING else)"); 
                         break;
                     }
+                    continue;
                 }
+
+                string type = Helper.getType(line, lineNum);
+                if (string.IsNullOrEmpty(type)) break;
+
                 string[] _parts = line.Split(':', 2);
                 _parts[0] = _parts[0].Trim();
-                if (_parts.Length < 2 && !Helper.getType(line, lineNum).StartsWith("arr")) {
-                    WriteLine($"key.value.missing [{lineNum}]: Key {_parts[0]} was not given a value.");
+
+                if (_parts.Length < 2 && !type.StartsWith("arr.")) { 
+                    WriteLine($"key.value.missing [{lineNum}]: Key {_parts[0]} was not given a value."); 
                     break;
                 }
-                else if (_parts.Length == 1 && Helper.getType(line, lineNum).StartsWith("arr")) {
-                    inArr = true;
-                }
-                string name = _parts[0];
-                if (isDuplicate(name)) break;
-                if (_parts.Length >1) _parts[1] = _parts[1].Trim();
-                names.Add(name);
+
+                string name = _parts[0].Split(' ')[1]; 
+                if (name.StartsWith("<-") && type.StartsWith("arr.")) name = name[2..];
+
+                if (isDuplicate(name)) break; 
+                names.Add(name); 
+
                 string val = "";
-                if (!inArr) {
-                    val = _parts[1]; 
+                if (_parts.Length > 1) {
+                    val = _parts[1].Trim(); 
+                    if (val == "empty") val = null; 
                 }
-                else { 
-                    // I have no idea why this is here but I'm scared to touch it - Wer
-                    val = "arr"; 
-                }
-                if (val == "empty") {
-                    val = null;
-                }
-                string type = Helper.getType(line, lineNum);
-                if (type == "") break;
+
+                bool isArrayType = type.StartsWith("arr."); 
+
                 data[name] = new Data {
                     Name = name,
                     Value = val,
                     Type = type,
                     Array = new List<object>(),
-                    IsArr = (type == "arr")
+                    IsArr = isArrayType
                 };
-                // ¿¿¿ debug
-                //WriteLine(val);
-                WriteLine(type);
-                if (inArr) WriteLine("got to inArr loop");
-                // ??? debug
-                
-                if (type.StartsWith("arr")) {
+
+                if (isArrayType) { 
                     inArr = true;
-                    string _temptype = Helper.getType(line, lineNum);
-                    if (_temptype == "") break;
-                    data[name].Type = _temptype;
-                
-                    i++;  
+                    i++; // Advance past the array header line
+
                     while (inArr && i < lines.Length) {
-                        string arrLine = lines[i].Trim();
-                        // WriteLine(arrLine);
-                        uint arrLineNum = (uint)i + 1;
-                        
-                        if (arrLine.Trim() == ">") {
+                        string arrLine = lines[(int)i].Trim();
+                        uint arrLineNum = i + 1;
+
+                        if (arrLine == "->") { 
                             inArr = false;
-                            i++;
                             break;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(arrLine) || arrLine[0] == '|') { 
+                            i++;
+                            continue;
+                        }
+
+                        switch (data[name].Type) {
+                            case "arr.u32":
+                                if (IsIt.positive(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToUInt32(arrLine)); 
+                                break;
+                            case "arr.int":
+                                if (IsIt.Int(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToInt32(arrLine)); 
+                                break; 
+                            case "arr.str":
+                                if (IsIt.str(arrLine, arrLineNum)) data[name].Array.Add(Helper.unquote(arrLine, arrLineNum));
+                                break;
+                            case "arr.bool":
+                                if (Helper.bools.Contains(arrLine)) data[name].Array.Add(Helper.boolify(arrLine)); 
+                                break;
+                            case "arr.flt":
+                                if (IsIt.flt(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToDouble(arrLine)); 
+                                break;
+                            case "arr.u8":
+                                if (IsIt.u8(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToByte(arrLine)); 
+                                break;
+                            default:
+                                break;
                         }
                         i++;
-                        if (arrLine[0] == '|' || string.IsNullOrWhiteSpace(arrLine)) continue;
-
-                        if (arrLine[0] == '|' || string.IsNullOrWhiteSpace(arrLine)) continue;
-                    
-                        if (data[name].Type == "arr.int" && !IsIt.Int(arrLine, arrLineNum) || (data[name].Type == "arr.flt" && !IsIt.flt(arrLine, arrLineNum))) {
-                            WriteLine($"arr.item.mismatch [{arrLineNum}]: {arrLine} is not does not match {data[name].Name}'s type, thus cannot be appended .");
-                            break;
-                        }
-
-                        else if (data[name].Type == "arr.bool" && !(Helper.bools.Contains(arrLine))) {
-                            WriteLine($"arr.item.mismatch [{arrLineNum}]: {arrLine} is not does not match {data[name].Name}'s type, thus cannot be appended .");
-                            break;
-                        }
-                    
-                        else if (data[name].Type == "arr.u32" &&  !IsIt.positive(arrLine, arrLineNum)) {
-                            WriteLine($"arr.item.mismatch [{arrLineNum}]: {arrLine} is not does not match {data[name].Name}'s type, thus cannot be appended .");
-                            break;
-                        }
-
-                        // if (data[name].Type == "arr.str" && arrLine[0] == '<') data[name].Array.Add(arrLine);
-                        switch(data[name].Type) {
-                            case "arr.u32": 
-                                if (IsIt.positive(arrLine, arrLineNum)) {
-                                    data[name].Array.Add(Convert.ToUInt32(arrLine)); 
-                                }
-                                else {
-                                    break;
-                                }
-                                break;
-                            case "arr.int": 
-                                if (IsIt.Int(arrLine, arrLineNum)) {
-                                    data[name].Array.Add(Convert.ToInt32(arrLine));
-                                }
-                                else {
-                                    break;
-                                }
-                                break; 
-                            case "arr.str": 
-                                if (IsIt.str(arrLine, arrLineNum)) data[name].Array.Add(arrLine);
-                                else break;
-                                break;
-                            case "arr.bool": 
-                                if (Helper.bools.Contains(arrLine)) {
-                                    data[name].Array.Add(Helper.boolify(arrLine)); 
-                                }
-                                else {
-                                    break;
-                                }
-                                break;
-                            case "arr.flt": 
-                                if (IsIt.flt(arrLine, arrLineNum)) {
-                                    data[name].Array.Add(arrLine); 
-                                }
-                                else {
-                                    break;
-                                }
-                                break;
-                            case "arr.u8": 
-                                if (IsIt.u8(arrLine, arrLineNum)) {
-                                    data[name].Array.Add(arrLine); 
-                                }
-                                else {
-                                    break;
-                                }
-                                break;
-                            default: break;
-                        }
                     }
                 }
             }
-            // !!!!!!! DEBUG
-            foreach (var kvp in data) {
-                if (kvp.Value.IsArr) {
-                    WriteLine($"{kvp.Key}: [{kvp.Value.Type}] = {string.Join(", ", kvp.Value.Array)}");
+
+            foreach (var kvp in data) { 
+                if (kvp.Value.IsArr) { 
+                    WriteLine($"{kvp.Key}: [{kvp.Value.Type}] = {string.Join(", ", kvp.Value.Array)}"); 
                 } else {
-                    WriteLine($"{kvp.Key}: [{kvp.Value.Type}] = {kvp.Value.Value}");
+                    WriteLine($"{kvp.Key}: [{kvp.Value.Type}] = {kvp.Value.Value}"); 
                 }
-                
             }
-            return data;
+            return data; 
         }
     }
 }

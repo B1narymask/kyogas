@@ -15,47 +15,84 @@ Kyogas was made mainly as a personal project,  but if you're interested in it, h
 # Syntax
 Comments are only inline and marked with `|`
 As mentioned before, Kyogas has static typing, which means that every key has a set type. 
-Types are marked by a "prefix" or "type marker":
 
-|  type  | marker  |
+Types are mostly intuitive, but for clarification purposes only, here is a small table:
+
+|  Kyogas  | C#  |
 |----|----|
-|  string  |  -  |
-|  int  |  #  |
-|  float  |  °  |
-|  unsigned int |  +  |
-|  byte  |  %  |
-|  bool |  !  |
-|  array  | (see below)  |
+|  str  |  string  |
+|  int  |  int  |
+|  flt  |  float  |
+|  uint |  uint  |
+|  byte |  byte  |
+|  bool |  bool  |
+|  arr<type>  | type[]  |
 
 ## Arrays
 
-Arrays have *2*  type markers instead of just 1 like every other data type: `<` to indicate it's an array, then the type marker for the items, so an array of strings would be `<-`, one of integers would use `<#`, a list of booleans would be marked with `<!`, etc. 
+Arrays must have the `<-` prefix, otherwise it may cause parsing issues.
+
+Valid: `arr<str> <-things` invalid: `arr<str> things`.
+
+Arrays are closed with `->`
+
+***Please note that the closing line MUST be the array terminator ONLY. If there are random characters after or before it, the parser will crash.***
+
+### Valid vs Invalid Arrays
+
+Invalid: 
+```
+arr<str> <-showcase
+    "super cool"
+    "and awesome"
+    "strings should"
+    "go here"
+    "!!!!"
+-> hi mom!!
+```
+
+Valid:
+
+```
+arr<str> <-showcase
+    "super cool"
+    "and awesome"
+    "strings should"
+    "go here"
+    "!!!!"
+->
+```
 
 ## Dictionaries
 
 Yeah, dicts... we don't have those. 
-Kyogas doesn't and probably never will support dictionaries (or any kind of depth/nesting for that matter). If you want dictionaries, I don't know, use JSON or find a workaround
+
+Kyogas doesn't and probably never will support dictionaries (or any kind of depth/nesting for that matter). 
+
+Why?
+
+Because I can't code them in.. I swear I've tried!!
 
 ## Null
 You can assign the equivalent to `null` to a key with the `empty` keyword:
-`-name: empty` = `string name = null;`
+`str name: empty` = `string name = null;`
 
 # Example snippet
 A player save file for an RPG
 
 ```
--name: player
-%lvl: 5
-+gold: 358
-+xp: 44
-%hp: 100
-%max-hp: 100
-%defense: 4
-%attack: 45
-<-inventory
+str name: player
+byte lvl: 5
+uint gold: 358
+uint xp: 44
+byte hp: 100
+byte max-hp: 100
+byte defense: 4
+byte attack: 45
+arr<str> <-inventory
     | as an alternative to dicts, you could just use different files 
     | and reference them in string arrays
     "sword.kyo" 
     "strength-potion.kyo" 
->
+->
 ```

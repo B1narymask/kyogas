@@ -4,20 +4,20 @@ str name: "Kyogas"
 str creationDate: "1/9/2026"
 str first-working-release: "3/9/2026, 01:09 GMT-3"
 
-str current-version: "0.2.1.2"
-+public-releases: 5
+str current-version: "1.2.1.2"
+uint public-releases: 5
 
 byte data-type-count: 7
-arr<str> data-types
-    "-str"
-    "#int"
-    "+uint"
-    "%byte"
-    "°flt (float)"
-    "<arr"
-    "!bool"
+arr<str> <-data-types
+    "str"
+    "int"
+    "uint"
+    "byte"
+    "flt (float)"
+    "arr<type>"
+    "bool"
 ->
-arr<str> contributors
+arr<str> <-contributors
     "wernasho"
     "centurion"
 ->
