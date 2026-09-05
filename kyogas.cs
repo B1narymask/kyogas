@@ -21,18 +21,30 @@ public class Handler {
 				}
 		}
 		public void update(string key, string newVal, string path) {
-			if (!File.Exists(file)) {
+			// this whole thing is useless because of the change in type markers...
+			/*if (!File.Exists(file)) {
 					WriteLine("external.fileSys: The file you passed does not exist in this context.");
 					return;
 				}
 				
-			foreach (var line in File.ReadAllLines(path)) {
+			for (int i = 0; i < File.ReadAllLines(path).Length; i++) {
+				string line = File.ReadAllLines(path)[i];
 				string[] parts = line.split(':');
+
 				if (key == parts[0]) {
 					if (key[0] == '-') parts[1] = $"\"{newVal}\"";
-					switch(key[0])
+					switch(key[0]) {
+						case '#': 
+							if (IsIt.Int(newVal, 0)) parts[1] = newVal; break;
+							else return;
+						case '%': 
+							if (IsIt.byte(newVal, 0)) parts[1] = newVal; break;
+							else return;
+						case '-': parts[1] = newVal;break;
+						case ''
+					}
 				}
 
-			}
+			}*/
 		}
 }

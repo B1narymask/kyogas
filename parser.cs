@@ -5,7 +5,7 @@ using System.Linq;
 using static System.Console;
 namespace Kiogas {
     public static class Helper {
-        public static string glyphs = "-!°<#+%";
+        public static string[] types = {"int", "byte", "uint", "str", "bool", "arr", "flt"};
         public static string[] bools = {"f", "t", "true", "false"};
         public static string nums = "-1234567890";
         public static string fltNums = "-1234567890.";
@@ -47,6 +47,43 @@ namespace Kiogas {
 
             return str[1..^1];
 
+        }
+        public static string getType(string str, uint ln) {
+            if(!str.Contains(" ")) {
+                WriteLine($"parser.missingSpace [{ln}]: Missing space. How did this even happen?");
+                return "";
+            }
+            string[] _temp = str.Split(' ', 2);
+            string _type = _temp[0];
+            if (_type.StartsWith("arr<") && _type.EndsWith(">")) {
+                string subtype = _type.Split('<')[1];
+                subtype = subtype[0..^1]; // to get rid of the closing '>'
+                return subtype switch {
+                    "int" => "arr.int",
+                    "flt" => "arr.flt",
+                    "byte" => "arr.u8",
+                    "uint" => "arr.u32",
+                    "str" => "arr.str",
+                    "bool" => "arr.bool",
+                    _ => ""
+                };
+            }
+            else if (_type.StartsWith("arr<") && !_type.EndsWith(">")) {
+                WriteLine($"type.arr.unclosed [{ln}]: Array type delcaration is missing the closing angle bracket ('>')");
+                return "";
+            }
+            else if (_type.StartsWith("arr") && !_type.Contains("<") && _type.EndsWith(">")) {
+                WriteLine($"type.arr.unopened [{ln}]: Array type delcaration is missing the opening angle bracket ('<')");
+                return "";
+            }
+            else if (Helper.types.Contains(_type)) return _type;
+            else {
+                if (Helper.types.Contains(_type.ToLower())) {
+                    WriteLine($"type.similar [{ln}]: There is no such type '{_type}'. Did you mean {_type.ToLower()}?");
+                    return "";
+                }
+            }
+            return "";
         }
     }
 
@@ -126,6 +163,7 @@ namespace Kiogas {
             return true;
         }
         public static bool str(string str, uint ln) {
+            str = str.Trim();
             char first = str[0];
             char last  = str[str.Length - 1];
             str = Helper.unquote(str, ln);
@@ -144,53 +182,14 @@ namespace Kiogas {
 
     public class Parser {
         private bool inArr = false;
-        // don't ask me why I store the name twice, it just works. 
         private Dictionary<string, Data> data = new();
         private List<string> names = new();
-        private string parseGlyph(string line, uint num) {
-            line = line.Trim();
-            char first = line[0];
-            if (!(Helper.glyphs.Contains(first))) {
-                Console.WriteLine($"type.marker.unknown: Unrecognized type marker '{first}' in line {num}.");
-                return "ERR";
-            } 
-            switch(first) {
-                case '-': return "str";
-                case '!': return "bool";
-                case '°': return "flt";
-                case '#': return "int";
-                case '+': return "uint";
-                case '<': return "arr";
-                case '%': return "byte";
-            }
-
-            return "ERR";
-            
-        }
         private bool isDuplicate(string name) {
             if (names.Contains(name)) {
                 Console.WriteLine($"name.duplicate: There are two or more keys named '{name}'.");
                 return true;
             }
             return false;
-        }
-        private string parseArrType(string line, uint num) {
-            char id = line[1];
-            if (!(Helper.glyphs.Contains(id))) {
-                Console.WriteLine($"arr.invalid: Invalid type marker '{id}' found after array marker (<) in line {num}.");
-                return "arr.ERR";
-            }
-            else {
-                switch(id) {
-                    case '-': return "arr.str";
-                    case '!': return "arr.bool";
-                    case '°': return "arr.flt";
-                    case '#': return "arr.int";
-                    case '+': return "arr.uint";
-                    case '%': return "arr.byte";
-                }
-            }
-            return "arr.ERR";
         }
         public Dictionary<string, Data> parse(string fn) {
             // you might want to wrap this in a try catch
@@ -201,26 +200,26 @@ namespace Kiogas {
                 int intline = (int)i+1;
                 string line = lines[__i];
                 line = line.Trim();
-                if (line.Trim() == ">") inArr = false;
+                if (line.Trim() == "->") inArr = false;
                 if (string.IsNullOrWhiteSpace(line)) continue;
                 if (line[0] == '|') continue; // ignores comments and empty lines
                 
-                if (line.Trim()[0] == '>' && line.IndexOf(">") != line.Length-1) {
-                    WriteLine($"arr.terminator.polluted [{lineNum}]: Polluted array terminator (the end of an array should be JUST '>', NOTHING else)");
-                    break;
+                if (line.Trim()[0] == '-') {
+                    if (line.Trim()[1] == '>' && line.IndexOf(">") != line.Length-1) {
+                        WriteLine($"arr.terminator.polluted [{lineNum}]: Polluted array terminator (the end of an array should be JUST '->', NOTHING else)");
+                        break;
+                    }
                 }
                 string[] _parts = line.Split(':', 2);
                 _parts[0] = _parts[0].Trim();
-                if (_parts.Length < 2 && _parts[0][0] != '<') {
+                if (_parts.Length < 2 && !Helper.getType(line, lineNum).StartsWith("arr")) {
                     WriteLine($"key.value.missing [{lineNum}]: Key {_parts[0]} was not given a value.");
                     break;
                 }
-                else if (_parts.Length == 1 && _parts[0][0] == '<') inArr = true;
+                else if (_parts.Length == 1 && Helper.getType(line, lineNum).StartsWith("arr")) {
+                    inArr = true;
+                }
                 string name = _parts[0];
-                // ¿¿¿¿¿ debug:
-                // WriteLine(name);
-                // foreach (var x in _parts) WriteLine(x);
-                // ????? debug
                 if (isDuplicate(name)) break;
                 if (_parts.Length >1) _parts[1] = _parts[1].Trim();
                 names.Add(name);
@@ -235,8 +234,8 @@ namespace Kiogas {
                 if (val == "empty") {
                     val = null;
                 }
-                string type = parseGlyph(line, lineNum);
-                if (type == "ERR") break;
+                string type = Helper.getType(line, lineNum);
+                if (type == "") break;
                 data[name] = new Data {
                     Name = name,
                     Value = val,
@@ -244,10 +243,16 @@ namespace Kiogas {
                     Array = new List<object>(),
                     IsArr = (type == "arr")
                 };
-                if (type == "arr") {
+                // ¿¿¿ debug
+                //WriteLine(val);
+                WriteLine(type);
+                if (inArr) WriteLine("got to inArr loop");
+                // ??? debug
+                
+                if (type.StartsWith("arr")) {
                     inArr = true;
-                    string _temptype = parseArrType(line, lineNum);
-                    if (_temptype == "arr.ERR") break;
+                    string _temptype = Helper.getType(line, lineNum);
+                    if (_temptype == "") break;
                     data[name].Type = _temptype;
                 
                     i++;  
@@ -276,14 +281,14 @@ namespace Kiogas {
                             break;
                         }
                     
-                        else if (data[name].Type == "arr.uint" &&  !IsIt.positive(arrLine, arrLineNum)) {
+                        else if (data[name].Type == "arr.u32" &&  !IsIt.positive(arrLine, arrLineNum)) {
                             WriteLine($"arr.item.mismatch [{arrLineNum}]: {arrLine} is not does not match {data[name].Name}'s type, thus cannot be appended .");
                             break;
                         }
 
                         // if (data[name].Type == "arr.str" && arrLine[0] == '<') data[name].Array.Add(arrLine);
                         switch(data[name].Type) {
-                            case "arr.uint": 
+                            case "arr.u32": 
                                 if (IsIt.positive(arrLine, arrLineNum)) {
                                     data[name].Array.Add(Convert.ToUInt32(arrLine)); 
                                 }
@@ -319,7 +324,7 @@ namespace Kiogas {
                                     break;
                                 }
                                 break;
-                            case "arr.byte": 
+                            case "arr.u8": 
                                 if (IsIt.u8(arrLine, arrLineNum)) {
                                     data[name].Array.Add(arrLine); 
                                 }
@@ -327,6 +332,7 @@ namespace Kiogas {
                                     break;
                                 }
                                 break;
+                            default: break;
                         }
                     }
                 }
