@@ -1,6 +1,6 @@
 str name: "Kyogas"
 
-| format:  "DD/MM/YYYY"
+|   format        DD/MM/YYYY
 str creationDate: "1/9/2026"
 str first-working-release: "3/9/2026, 01:09 GMT-3"
 

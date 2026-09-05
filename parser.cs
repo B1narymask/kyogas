@@ -5,7 +5,7 @@ using System.Linq;
 using static System.Console;
 namespace Kiogas {
     public static class Helper {
-        public static string[] types = {"int", "byte", "uint", "str", "bool", "arr", "flt"};
+        public static string[] types = {"int", "byte", "uint", "str", "bool", "arr", "flt", "obj"};
         public static string[] bools = {"f", "t", "true", "false"};
         public static string nums = "-1234567890";
         public static string fltNums = "-1234567890.";
@@ -18,7 +18,6 @@ namespace Kiogas {
                 case "false": return false;
                 default: WriteLine($"bool.invalid: {str} is not a valid boolean"); return null;
             }
-            // return true;
         }
         public static string escapeCheck(string str, uint ln) {
             foreach (char c in str) {
@@ -73,12 +72,8 @@ namespace Kiogas {
                 WriteLine($"type.arr.unopened [{ln}]: Array type delcaration is missing the opening angle bracket ('<')");
                 return "";
             }
-
-            if (Helper.types.Contains(_type)) return _type;
-            /*else if (!str.Contains(" ")) {
-                WriteLine($"parser.missingSpace [{ln}]: Missing space. How did this even happen?");
-                return "";
-            }*/
+            if (str.Contains("<==") && str.LastIndexOf("=") == str.Length - 1 && str.StartsWith("obj ")) return "obj";
+            else if (Helper.types.Contains(_type)) return _type;
             else {
                 if (Helper.types.Contains(_type.ToLower())) {
                     WriteLine($"type.similar [{ln}]: There is no such type '{_type}'. Did you mean {_type.ToLower()}?");
@@ -88,7 +83,6 @@ namespace Kiogas {
             return "";
         }
     }
-
     public static class IsIt {
         public static bool Int(string str, uint ln) {
             uint matches = 0;
@@ -180,10 +174,14 @@ namespace Kiogas {
         public string Value { get; set; }
         public List<object> Array { get; set; }
         public bool IsArr { get; set; }
+        public Dictionary<string, object> Object { get; set; }
+        public bool IsObj { get; set; }
+        public List<string> objType { get; set; }
     }
 
     public class Parser {
         private bool inArr = false;
+        private bool inObj = false;
         private Dictionary<string, Data> data = new();
         private List<string> names = new();
 
@@ -206,27 +204,32 @@ namespace Kiogas {
 
                 if (line.StartsWith("->")) {
                     inArr = false;
-                    if (line != "->") {
+                    if (line.Contains("->") && line != "->") {
                         WriteLine($"arr.terminator.polluted [{lineNum}]: Polluted array terminator (the end of an array should be JUST '->', NOTHING else)"); 
                         break;
                     }
                     continue;
                 }
-
+                if (line.StartsWith("=>>")) {
+                    inObj = false;
+                    if (line.Contains("=>>") && line != "=>>") {
+                        WriteLine($"obj.terminator.polluted [{lineNum}]: Polluted object terminator (the end of an object should be JUST '=>>', NOTHING else)"); 
+                        break;
+                    }
+                }
                 string type = Helper.getType(line, lineNum);
                 if (string.IsNullOrEmpty(type)) break;
-
                 string[] _parts = line.Split(':', 2);
                 _parts[0] = _parts[0].Trim();
-
-                if (_parts.Length < 2 && !type.StartsWith("arr.")) { 
+                WriteLine($"debug | type: {type}");
+                if (_parts.Length < 2 && (!type.StartsWith("arr.") && type != "obj")) { 
                     WriteLine($"key.value.missing [{lineNum}]: Key {_parts[0]} was not given a value."); 
                     break;
                 }
 
                 string name = _parts[0].Split(' ')[1]; 
                 if (name.StartsWith("<-") && type.StartsWith("arr.")) name = name[2..];
-
+                
                 if (isDuplicate(name)) break; 
                 names.Add(name); 
 
@@ -235,20 +238,23 @@ namespace Kiogas {
                     val = _parts[1].Trim(); 
                     if (val == "empty") val = null; 
                 }
-
+                if (type == "str" && val.Contains("\\")) val = Helper.unquote(val, lineNum);
                 bool isArrayType = type.StartsWith("arr."); 
-
+                bool isObjectType = (type == "obj");
                 data[name] = new Data {
                     Name = name,
                     Value = val,
                     Type = type,
                     Array = new List<object>(),
-                    IsArr = isArrayType
+                    IsArr = isArrayType,
+                    Object = new Dictionary<string, object>(),
+                    IsObj = isObjectType,
+                    objType = null
                 };
 
                 if (isArrayType) { 
                     inArr = true;
-                    i++; // Advance past the array header line
+                    i++;
 
                     while (inArr && i < lines.Length) {
                         string arrLine = lines[(int)i].Trim();
@@ -287,6 +293,67 @@ namespace Kiogas {
                                 break;
                         }
                         i++;
+                    }
+                }
+
+                if (isObjectType) {
+                    inObj = true;
+                    i++;
+                    int keyNum = 0;
+
+                    if (data[name].Object == null) data[name].Object = new Dictionary<string, object>();
+                    if (data[name].objType == null) data[name].objType = new List<string>();
+
+                    while (inObj && i < lines.Length) {
+                        string objLine = lines[(int)i].Trim();
+                        uint objln = i + 1;
+
+                        if (objLine == "==>") {
+                            inObj = false;
+                            break;
+                        }
+
+                        if (string.IsNullOrWhiteSpace(objLine) || objLine[0] == '|') { 
+                            i++;
+                            continue;
+                        }
+
+                        if (!objLine.Contains(":")) {
+                            WriteLine($"obj.missingColon [{objLine}]: Missing colon.");
+                            i++;
+                            break;
+                        }
+
+                        string[] parts = objLine.Split(':', 2);
+                        string key = parts[0].Trim();
+                        string keyVal = parts[1].Trim();
+
+                        data[name].Object[key] = keyVal;
+                        
+                        // infer key type
+                        data[name].objType.Add(Helper.getType(objLine, objln));
+                        string t = data[name].objType[keyNum];
+
+                        if (t == "str" && keyVal.Contains("\\")) {
+                            keyVal = Helper.unquote(keyVal, objln); 
+                            data[name].Object[key] = keyVal;
+                        }
+
+                        if (t == "obj") {
+                            WriteLine($"obj.nested [{objln}]: Nested objects are not supported.");
+                            i++;
+                            break;
+                        }
+
+                        keyNum++;
+                        i++;
+                    }
+
+                    // debug
+                    int j = 0;
+                    foreach (var x in data[name].Object) {
+                        WriteLine($"{x.Key}: [{data[name].objType[j]}] = {x.Value}");
+                        j++;
                     }
                 }
             }
