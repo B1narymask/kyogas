@@ -8,5 +8,6 @@
   <ItemGroup>
     <Compile Include="Program.cs" />
     <Compile Include="parser.cs" />
+    <Compile Include="utils.cs" />
   </ItemGroup>
 </Project>

@@ -4,8 +4,8 @@ str name: "Kyogas"
 str creationDate: "1/9/2026"
 str first-working-release: "3/9/2026, 01:09 GMT-3"
 
-str current-version: "2.2.1.2"
-uint public-releases: 5
+str current-version: "2.2.1.3"
+uint public-releases: 6
 
 byte data-type-count: 8
 arr<str> <-data-types
