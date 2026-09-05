@@ -65,13 +65,18 @@ arr<str> <-showcase
 
 ## Dictionaries
 
-Yeah, dicts... we don't have those. 
+Yeah, dicts... we *DO* have those now!
 
-Kyogas doesn't and probably never will support dictionaries (or any kind of depth/nesting for that matter). 
+Example object: 
 
-Why?
-
-Because I can't code them in.. I swear I've tried!!
+```
+obj sword <==
+    int dmg: 45
+    flt range: 6.7
+    str name: "Sword"
+    byte cost: 255
+==>
+```
 
 ## Null
 You can assign the equivalent to `null` to a key with the `empty` keyword:
@@ -89,10 +94,4 @@ byte hp: 100
 byte max-hp: 100
 byte defense: 4
 byte attack: 45
-arr<str> <-inventory
-    | as an alternative to dicts, you could just use different files 
-    | and reference them in string arrays
-    "sword.kyo" 
-    "strength-potion.kyo" 
-->
 ```
