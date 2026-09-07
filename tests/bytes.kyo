@@ -1,0 +1,5 @@
+byte test: -67
+
+arr<byte> <-bytes
+    67
+->

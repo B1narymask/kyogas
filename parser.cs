@@ -25,6 +25,25 @@ public class Parser
         return false;
     }
 
+    private bool validateType(string type, string val, uint ln)
+    {
+        if (val == null)
+        {
+            return true;
+        }
+
+        return type switch
+        {
+            "byte" => IsIt.u8(val, ln),
+            "int"  => IsIt.Int(val, ln),
+            "uint" => IsIt.positive(val, ln),
+            "flt"  => IsIt.flt(val, ln),
+            "str"  => IsIt.str(val, ln),
+            "bool" => Helper.bools.Contains(val),
+            _      => true
+        };
+    }
+
     public Dictionary<string, Data> parse(string fn)
     {
         string[] lines = File.ReadAllLines(fn);
@@ -100,13 +119,23 @@ public class Parser
                     val = null;
                 }
             }
-            if (type == "str" && val.Contains("\\"))
+            if (type == "str" && val != null && val.Contains("\\"))
             {
                 val = Helper.unquote(val, lineNum);
             }
 
             bool isArrayType  = type.StartsWith("arr.");
             bool isObjectType = (type == "obj");
+
+            // tuxzilla wuz here, this makes it so types are always.. the types they should be
+            if (!isArrayType && !isObjectType)
+            {
+                if (!validateType(type, val, lineNum))
+                {
+                    break;
+                }
+            }
+
             data[name]        = new Data
             {
                 Name    = name,
