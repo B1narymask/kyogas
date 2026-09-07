@@ -87,7 +87,7 @@ public class Parser
             _parts[0]       = _parts[0].Trim();
 
             // debug
-            WriteLine($"debug | type: {type}");
+            // WriteLine($"debug | type: {type}");
 
             if (_parts.Length < 2 && (!type.StartsWith("arr.") && type != "obj"))
             {
@@ -122,6 +122,7 @@ public class Parser
             if (type == "str" && val != null && val.Contains("\\"))
             {
                 val = Helper.unquote(val, lineNum);
+                val = Helper.escapeCheck(val, lineNum);
             }
 
             bool isArrayType  = type.StartsWith("arr.");
@@ -265,6 +266,14 @@ public class Parser
                     if (t == "str" && keyVal.Contains("\\"))
                     {
                         keyVal                 = Helper.unquote(keyVal, objln);
+                        keyVal																 = Helper.escapeCheck(keyVal, objln);
+                        // the Helper.escapeCheck returns .:ERR:.
+                        // when something goes wrong
+                        // so this just breaks out if 
+                        // it sees that value
+                        // - wer
+                        if (keyVal == ".:ERR:.") break;
+                        
                         data[name].Object[key] = keyVal;
                     }
 
@@ -281,6 +290,9 @@ public class Parser
 
                 // debug
                 int j = 0; // what does this even do??? - Centurion
+                // it's a debug thing to print out
+                // object key/value pairs - wer
+                
                 foreach (var x in data[name].Object)
                 {
                     WriteLine("DEBUG:");
