@@ -1,11 +1,11 @@
-# Kyogas v2.2.1.2
-Released 5/9/2026 (DD/MM/YYYY), 15:51 GMT-3 
+# Kyogas v2.2.1.3
+Released 7/9/2026 (DD/MM/YYYY) 
 
-# Added
-Objects!!
+# What's New
 
-yeah that's... that's it...
+## Fixed
 
-...
+Made escape characters 
+actually work now (hopefully...)
 
-god I suck at writing these...
+ 
