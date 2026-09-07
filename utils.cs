@@ -27,7 +27,7 @@ public static class Helper {
                 switch(str[cIndex+1]){
                     case 'n': str = str.Replace("\\n", "\n"); break;
                     case 't': str = str.Replace("\\t", "\t"); break;
-                    case '\\': 
+                    case '\\':
                     default: WriteLine($"str.escape.unknown [{ln}]: '\\{c}' is not a recognized escape sequence."); return ".:ERR:.";
                 }
             }
@@ -135,7 +135,7 @@ public static class IsIt {
         return true;
     }
     public static bool positive(string str, uint ln) {
-        if (str.Contains('-')) { 
+        if (str.Contains('-')) {
             WriteLine($"uint.underflow [{ln}]: {str} is negative. Unsigned integers cannot be negative.");
             return false;
         }
@@ -147,16 +147,23 @@ public static class IsIt {
         return true;
     }
     public static bool u8(string str, uint ln) {
-        int x = Convert.ToInt32(str);
-        if (x > 255) {
+        if (string.IsNullOrWhiteSpace(str)) {
+            WriteLine($"byte.empty [{ln}]: expected a byte, got nothing.");
+            return false;
+        }
+        // check if theres a - no real reason to convert to an int first.
+        if (str[0] == '-') {
+            WriteLine($"byte.underflow [{ln}]: {str} is negative. Bytes cannot be negative.");
+            return false;
+        }
+        if (int.TryParse(str, out int asInt) && asInt > 255) {
             WriteLine($"byte.overflow [{ln}]: Value {str} is greater than the 8 bit unsigned integer limit (255)\n(Basically, this shouldn't be over 255)");
             return false;
         }
-        if (x < 0) {
-            WriteLine($"byte.underflow: [{ln}]: Bytes cannot be negative."); 
+        if (!byte.TryParse(str, out _)) {
+            WriteLine($"byte.invalid [{ln}]: '{str}' is not a valid byte (0-255).");
             return false;
         }
-        if (x > 0 && x < 256) return true;
         return true;
     }
     public static bool str(string str, uint ln) {
