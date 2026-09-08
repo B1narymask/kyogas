@@ -1,7 +1,7 @@
 # Kyogas 
 *(it's actually spelled "kiógas")*
 
-Kyogas (.kyo) is a minimalistic markup language with static typing that I made because I didn't have anything better to do. And because JSON is too verbose and I despise YAML using indentation for everything 
+Kyogas (file extension .`kyo`) is a minimalistic markup language with static typing that I made because I didn't have anything better to do. And because JSON is too verbose and I despise YAML using indentation for everything.
 
 
 ## Why should I use it?
@@ -16,7 +16,7 @@ Kyogas was made mainly as a personal project,  but if you're interested in it, h
 Comments are only inline and marked with `|`
 As mentioned before, Kyogas has static typing, which means that every key has a set type. 
 
-Types are mostly intuitive, but for clarification purposes only, here is a small table:
+Types are mostly intuitive, but for clarification purposes, here is a small table:
 
 |  Kyogas  | C#  |
 |----|----|
@@ -30,13 +30,13 @@ Types are mostly intuitive, but for clarification purposes only, here is a small
 
 ## Arrays
 
-Arrays must have the `<-` prefix, otherwise it may cause parsing issues.
+Arrays must have the `<-` prefix, otherwise the parser will throw an error.
 
 Valid: `arr<str> <-things` invalid: `arr<str> things`.
 
 Arrays are closed with `->`
 
-***Please note that the closing line MUST be the array terminator ONLY. If there are random characters after or before it, the parser will crash.***
+***Please note that the closing line MUST be the array terminator ONLY. If there are random characters after or before it, the parser will throw an error.***
 
 ### Valid vs Invalid Arrays
 
@@ -50,6 +50,8 @@ arr<str> <-showcase
     "!!!!"
 -> hi mom!!
 ```
+
+(notice the random string trailing the closing `->` symbol)
 
 Valid:
 
@@ -67,7 +69,9 @@ arr<str> <-showcase
 
 Yeah, dicts... we *DO* have those now!
 
-Example object: 
+Dictionaries are technically in the form of Objects, but they should work for all your dictionary needs.
+
+Example object for a sword: 
 
 ```
 obj sword <==
@@ -95,3 +99,5 @@ byte max-hp: 100
 byte defense: 4
 byte attack: 45
 ```
+
+Kyogas compiles into C# variables. We are still working on functionality to turn C# objects into Kyogas, however.
