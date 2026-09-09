@@ -1,0 +1,16 @@
+str name: "Tuxzilla"
+uint age: 15
+flt temp: 67.4
+int tokens: 100
+bool is_admin: true
+
+arr<str> <-names
+    "wernasho"
+    "tuxzilla"
+    "centurion"
+    "kyogas"
+->
+
+// note to self, one I think this is a comment
+// two, make it so you can have a space between <- and the name of the array
+// three, comments dont exist. add comments

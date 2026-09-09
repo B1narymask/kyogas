@@ -1,0 +1,103 @@
+# Kyogas 
+*(it's actually spelled "kiógas")*
+
+Kyogas (file extension .`kyo`) is a minimalistic markup language with static typing that I made because I didn't have anything better to do. And because JSON is too verbose and I despise YAML using indentation for everything.
+
+
+## Why should I use it?
+Kyogas was made mainly as a personal project,  but if you're interested in it, here are some advantages:
+- No bloaty syntax 
+- Easy and fast to type
+- Intuitive error codes that actually tell you what went wrong
+- Static typing
+- and a lot more to come!
+
+# Syntax
+Comments are only inline and marked with `|`
+As mentioned before, Kyogas has static typing, which means that every key has a set type. 
+
+Types are mostly intuitive, but for clarification purposes, here is a small table:
+
+|  Kyogas  | C#  |
+|----|----|
+|  str  |  string  |
+|  int  |  int  |
+|  flt  |  float  |
+|  uint |  uint  |
+|  byte |  byte  |
+|  bool |  bool  |
+|  arr<type>  | type[]  |
+
+## Arrays
+
+Arrays must have the `<-` prefix, otherwise the parser will throw an error.
+
+Valid: `arr<str> <-things` invalid: `arr<str> things`.
+
+Arrays are closed with `->`
+
+***Please note that the closing line MUST be the array terminator ONLY. If there are random characters after or before it, the parser will throw an error.***
+
+### Valid vs Invalid Arrays
+
+Invalid: 
+```
+arr<str> <-showcase
+    "super cool"
+    "and awesome"
+    "strings should"
+    "go here"
+    "!!!!"
+-> hi mom!!
+```
+
+(notice the random string trailing the closing `->` symbol)
+
+Valid:
+
+```
+arr<str> <-showcase
+    "super cool"
+    "and awesome"
+    "strings should"
+    "go here"
+    "!!!!"
+->
+```
+
+## Dictionaries
+
+Yeah, dicts... we *DO* have those now!
+
+Dictionaries are technically in the form of Objects, but they should work for all your dictionary needs.
+
+Example object for a sword: 
+
+```
+obj sword <==
+    int dmg: 45
+    flt range: 6.7
+    str name: "Sword"
+    byte cost: 255
+==>
+```
+
+## Null
+You can assign the equivalent to `null` to a key with the `empty` keyword:
+`str name: empty` = `string name = null;`
+
+# Example snippet
+A player save file for an RPG
+
+```
+str name: player
+byte lvl: 5
+uint gold: 358
+uint xp: 44
+byte hp: 100
+byte max-hp: 100
+byte defense: 4
+byte attack: 45
+```
+
+Kyogas compiles into C# variables. We are still working on functionality to turn C# objects into Kyogas, however.

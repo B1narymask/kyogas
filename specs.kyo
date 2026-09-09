@@ -1,16 +1,24 @@
--langName Kyogas
--dateFormat DD/MM/YYYY
--creationDate 1/9/2026
--first-working-release 3/9/2026, 01:09 GMT-3
--current-version 0.1.0.1
-%public-releases 2
-%data-type-count 7
-<-data-types
--str
-#int
-+uint
-%byte
-°flt (float)
-<arr
-!bool
->
+str name: "Kyogas"
+
+|   format        DD/MM/YYYY
+str creationDate: "1/9/2026"
+str first-working-release: "3/9/2026, 01:09 GMT-3"
+
+str current-version: "2.2.1.3"
+uint public-releases: 6
+
+byte data-type-count: 8
+arr<str> <-data-types
+    "str"
+    "int"
+    "uint"
+    "byte"
+    "flt (float)"
+    "arr<type>"
+    "bool"
+    "obj"
+->
+arr<str> <-contributors
+    "wernasho"
+    "centurion"
+->
