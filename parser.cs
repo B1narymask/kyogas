@@ -209,6 +209,21 @@ public class Parser
                                 data[name].Array.Add(Convert.ToByte(arrLine));
                             }
                             break;
+                        case "arr.u64": 
+                        		if (IsIt.u64(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToUInt64(arrLine));
+                        		break;
+                        case "arr.i64":
+                        		if (IsIt.i64(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToInt64(arrLine));
+                        		break;
+                        case "arr.i16":
+                        		if (IsIt.i116(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToInt16(arrLine));
+                        		break;
+                        case "arr.u16":
+                        		if (IsIt.u16(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToUInt16(arrLine));
+                        		break;
+                        case "arr.i8":
+                        		if (IsIt.i8(arrLine, arrLineNum)) data[name].Array.Add(Convert.ToInt8(arrLine));
+                        		break;
                         default:
                             break;
                     }
@@ -253,9 +268,9 @@ public class Parser
                         break;
                     }
 
-                    string[] parts         = objLine.Split(':', 2);
-                    string key             = parts[0].Trim();
-                    string keyVal          = parts[1].Trim();
+                    string[] parts = objLine.Split(':', 2);
+                    string key     = parts[0].Trim();
+                    string keyVal  = parts[1].Trim();
 
                     data[name].Object[key] = keyVal;
 
@@ -265,8 +280,8 @@ public class Parser
 
                     if (t == "str" && keyVal.Contains("\\"))
                     {
-                        keyVal                 = Helper.unquote(keyVal, objln);
-                        keyVal																 = Helper.escapeCheck(keyVal, objln);
+                        keyVa  = Helper.unquote(keyVal, objln);
+                        keyVal	= Helper.escapeCheck(keyVal, objln);
                         // the Helper.escapeCheck returns .:ERR:.
                         // when something goes wrong
                         // so this just breaks out if 
@@ -302,8 +317,7 @@ public class Parser
             }
         }
 
-        foreach (var kvp in data)
-        {
+        foreach (var kvp in data) {
             if (kvp.Value.IsArr)
             {
                 WriteLine($"{kvp.Key}: [{kvp.Value.Type}] = {string.Join(", ", kvp.Value.Array)}");

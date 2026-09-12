@@ -6,7 +6,21 @@ using static System.Console;
 
 namespace Utils;
 public static class Helper {
-    public static string[] types = {"int", "byte", "uint", "str", "bool", "arr", "flt", "obj"};
+    public static string[] types = {
+    		"int", 
+    		"byte", 
+    		"uint", 
+    		"str", 
+    		"bool", 
+    		"arr", 
+    		"flt", 
+    		"obj", 
+    		"short", 
+    		"ushot",
+    		"sbyte",
+    		"long",
+    		"ulong"
+		  };
     public static string[] bools = {"f", "t", "true", "false"};
     public static string nums = "-1234567890";
     public static string fltNums = "-1234567890.";
@@ -48,8 +62,7 @@ public static class Helper {
         }
         return str;
     }
-    public static string unquote(string str, uint ln) 
-    {
+    public static string unquote(string str, uint ln) {
         char first = str[0];
         char last  = str[str.Length - 1];
         
@@ -78,13 +91,18 @@ public static class Helper {
             subtype = subtype[0..^1]; 
             return subtype switch 
             {
-                "int"  => "arr.int",
-                "flt"  => "arr.flt",
-                "byte" => "arr.u8",
-                "uint" => "arr.u32",
-                "str"  => "arr.str",
-                "bool" => "arr.bool",
-                _ => ""
+                "int"    => "arr.int",
+                "flt"    => "arr.flt",
+                "byte"   => "arr.u8",
+                "uint"   => "arr.u32",
+                "str"    => "arr.str",
+                "bool"   => "arr.bool",
+                "short"  => "arr.i16",
+                "ushort" => "arr.u16",
+                "long"   => "arr.i64"
+                "ulong"  => "arr.u64",
+                "sbyte"  => "arr.i8"
+                _        => ""
             };
         }
         else if (_type.StartsWith("arr<") && _type.EndsWith(">") == false) 
@@ -117,8 +135,7 @@ public static class Helper {
     }
 }
 public static class IsIt {
-    public static bool Int(string str, uint ln) 
-    {
+    public static bool Int(string str, uint ln) {
         uint matches = 0;
         uint i = 0;
         
@@ -153,8 +170,7 @@ public static class IsIt {
         }
         return true;
     }
-    public static bool flt(string str, uint ln) 
-    {
+    public static bool flt(string str, uint ln) {
         uint matches = 0;
         uint i = 0;
         
@@ -203,47 +219,83 @@ public static class IsIt {
         }
         return true;
     }
-    public static bool u8(string str, uint ln) 
-    {
-        if (string.IsNullOrWhiteSpace(str)) 
-        {
+    public static bool u8(string str, uint ln) {
+        if (string.IsNullOrWhiteSpace(str)) {
             WriteLine($"byte.empty [{ln}]: expected a byte, got nothing.");
             return false;
         }
         // check if theres a '-' symbol -- no real reason to convert to an int first.
-        if (str[0] == '-') 
-        {
+        if (str[0] == '-') {
             WriteLine($"byte.underflow [{ln}]: {str} is negative. Bytes cannot be negative.");
             return false;
         }
-        if (int.TryParse(str, out int asInt) && asInt > 255) 
-        {
+        if (int.TryParse(str, out int asInt) && asInt > 255) {
             WriteLine($"byte.overflow [{ln}]: Value {str} is greater than the 8 bit unsigned integer limit (255)\n(Basically, this shouldn't be over 255)");
             return false;
         }
-        if (byte.TryParse(str, out _) == false) 
-        {
+        if (byte.TryParse(str, out _) == false) {
             WriteLine($"byte.invalid [{ln}]: '{str}' is not a valid byte (0-255).");
             return false;
         }
         return true;
     }
-    
-    public static bool str(string str, uint ln) 
-    {
+    public static bool i64(string str, uint ln) {
+							long x = null;
+							try {
+									x = Convert.ToInt64(str);
+							}
+							catch {
+									WriteLine($"long.invalid [{ln}]: {str} is not a valid long.");
+									return false;
+							}
+							
+							return true;
+				}
+				public static bool u64(string str, uint ln) {
+							ulong x = null;
+							try {
+									x = Convert.ToUInt64(str);
+							}
+							catch {
+									WriteLine($"ulong.invalid [{ln}]: {str} is not a valid ulong.");
+									return false;
+							}
+							
+							return true;
+				}
+				public static bool i16(string str, uint ln) {
+							short x = null;
+							try {
+									x = Convert.ToInt16(str);
+							}
+							catch {
+									WriteLine($"short.invalid [{ln}]: {str} is not a valid short.");
+									return false;
+							}
+							
+							return true;
+				}
+				public static bool u16(string str, uint ln) {
+							ushort x = null;
+							try {
+									x = Convert.ToUInt16(str);
+							}
+							catch {
+									WriteLine($"ushort.invalid [{ln}]: {str} is not a valid ushort.");
+									return false;
+							}
+							
+							return true;
+				}
+
+    public static bool str(string str, uint ln) {
         str        = str.Trim();
         char first = str[0];
         char last  = str[str.Length - 1];
         str        = Helper.unquote(str, ln);
         
-        if (str == "") 
-        {
-            return false;
-        }
-        else
-        {
-            return true;
-        }
+        if (str == "") return false;
+        else return true;
     }
 }
 
