@@ -21,25 +21,35 @@ public static class Helper {
     		"long",
     		"ulong"
 		  };
-    public static string[] bools = {"f", "t", "true", "false"};
+
+    public static string[] truthy = {
+    		"t", 
+    		"true", 
+    		"yes", 
+    		"1", 
+    		"on"
+    };
+    public static string[] falsy = {
+    		"f", 
+    		"false", 
+    		"no", 
+    		"0", 
+    		"off"
+    };
+    
     public static string nums = "-1234567890";
     public static string fltNums = "-1234567890.";
     public static char[] strs = ['\'', '"', ];
-    
-    public static object boolify(string str) {
-        switch(str) 
-        {
-            case "f":
-            case "false":
-                return false;
-            case "t":
-            case "true":
-                return true;
-            default:
-                WriteLine($"bool.invalid: {str} is not a valid boolean"); 
-                return null; 
+   
+    public static bool boolify(string str, uint ln) {
+        if (truthy.Contains(str)) return true;
+        else if (falsy.Contains(str)) return false;
+        else  {
+        		WriteLine($"bool.Invalid [{ln}]: {str} is not a valid boolean.");
+        		WriteLine($"Tip:\nValid booleans\ntruthy: \n\t{foreach (var x in truthy) Write($"{x} ");}");
+        		WriteLine($"falsy: {foreach (var x in falsy) write($"{x} ");}");
         }
-    }
+    }n
     public static string escapeCheck(string str, uint ln) {
         foreach (char character in str) {
             int cIndex = str.IndexOf(c);
