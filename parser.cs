@@ -9,9 +9,10 @@ using static System.Console;
 namespace Kiogas;
 public class Parser
 {
+		private bool hasERRORS  																 = false;
     private bool inArr                     = false; // currently inside of an array
     private bool inObj                     = false; // currently inside of an object
-
+		private ushort errorCOUNT 														 = 0;
     private Dictionary<string, Data> data  = new();
     private List<string> names             = new();
 
@@ -64,7 +65,8 @@ public class Parser
                 if (line.Contains("->") && line != "->")
                 {
                     WriteLine($"arr.terminator.polluted [{lineNum}]: Polluted array terminator (the end of an array should be JUST '->', NOTHING else)");
-                    break;
+                    hasERRORS = true;
+                    errorCOUNT++;
                 }
                 continue;
             }
@@ -74,13 +76,14 @@ public class Parser
                 if (line.Contains("=>>") && line != "=>>")
                 {
                     WriteLine($"obj.terminator.polluted [{lineNum}]: Polluted object terminator (the end of an object should be JUST '=>>', NOTHING else)");
-                    break;
+                    hasERRORS = true;
+                    errorCOUNT++:
                 }
             }
             string type = Helper.getType(line, lineNum);
             if (string.IsNullOrEmpty(type))
             {
-                break;
+                continue;
             }
 
             string[] _parts = line.Split(':', 2);
@@ -92,7 +95,8 @@ public class Parser
             if (_parts.Length < 2 && (!type.StartsWith("arr.") && type != "obj"))
             {
                 WriteLine($"key.value.missing [{lineNum}]: Key {_parts[0]} was not given a value.");
-                break;
+                hasERRORS = true;
+                errorCOUNT++;
             }
 
             string name = _parts[0].Split(' ')[1];
@@ -104,7 +108,8 @@ public class Parser
 
             if (isDuplicate(name))
             {
-                break;
+                hasERRORS = true;
+                errorCOUNT++;
             }
 
             names.Add(name);
@@ -127,13 +132,22 @@ public class Parser
 
             bool isArrayType  = type.StartsWith("arr.");
             bool isObjectType = (type == "obj");
-
+												if (type == "bool") {
+														if (Helper.truthy.Contains(val)) val = true;
+														else if (Helper.falsy.Contains(val)) val = false;
+														else {
+																hasERRORS = true;
+																errorCOUNT++;
+																WriteLine($"bool.invalid [{lineNum}]: {val} is not a valid boolean.");
+														}
+												}
             // tuxzilla wuz here, this makes it so types are always.. the types they should be
             if (!isArrayType && !isObjectType)
             {
                 if (!validateType(type, val, lineNum))
                 {
-                    break;
+                    hasERRORS = true;
+                    errorCOUNT++;
                 }
             }
 
@@ -194,7 +208,7 @@ public class Parser
                         case "arr.bool":
                             if (Helper.bools.Contains(arrLine))
                             {
-                                data[name].Array.Add(Helper.boolify(arrLine));
+                                data[name].Array.Add(Helper.boolify(arrLine, arrLineNum));
                             }
                             break;
                         case "arr.flt":
@@ -265,7 +279,8 @@ public class Parser
                     if (!objLine.Contains(":")) {
                         WriteLine($"obj.missingColon [{objLine}]: Missing colon.");
                         i++;
-                        break;
+                        hasERRORS = true;
+                        errorCOUNT++;
                     }
 
                     string[] parts = objLine.Split(':', 2);
@@ -287,7 +302,7 @@ public class Parser
                         // so this just breaks out if 
                         // it sees that value
                         // - wer
-                        if (keyVal == ".:ERR:.") break;
+                        if (keyVal == ".:ERR:.") hasERRORS= true; errorCOUNT++;
                         
                         data[name].Object[key] = keyVal;
                     }
@@ -296,7 +311,8 @@ public class Parser
                     {
                         WriteLine($"obj.nested [{objln}]: Nested objects are not supported.");
                         i++;
-                        break;
+                        hasERRORS = true;
+                        errorCOUNT++;
                     }
 
                     keyNum++;
@@ -327,6 +343,8 @@ public class Parser
                 WriteLine($"{kvp.Key}: [{kvp.Value.Type}] = {kvp.Value.Value}");
             }
         }
+        if (!hasERORRS) WriteLine("Parse successful!");
+        else WriteLine($"Parse finished with {errorCOUNT} errors.");
         return data;
     }
 }
